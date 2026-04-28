@@ -1,17 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { COMPANY_INFO } from '../constants';
+import { SettingsService, CompanySettings } from '../services/settingsService';
 
 export default function Login() {
   const [email, setEmail] = useState('alex.b19h@gmail.com');
   const [password, setPassword] = useState('060224Jc!');
   const [loading, setLoading] = useState(false);
+  const [config, setConfig] = useState<CompanySettings | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    SettingsService.get().then(setConfig);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +40,7 @@ export default function Login() {
   return (
     <div className="min-h-screen grid-bg flex items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute top-10 left-10 font-black text-ink/20 text-4xl select-none hidden md:block">
-        {COMPANY_INFO.name}
+        {config?.name || 'QUE POLLO'}
       </div>
       <div className="absolute bottom-10 right-10 font-mono text-ink/20 text-sm select-none hidden md:block">
         SECURE_AUTH_LAYER: CLOUD_FS
@@ -48,7 +53,7 @@ export default function Login() {
       >
         <div className="p-8 border-b border-ink bg-ink text-canvas">
           <h2 className="text-xl font-black tracking-tighter uppercase mb-1">Inicia Sesión</h2>
-          <p className="text-[10px] font-mono opacity-50 uppercase">{COMPANY_INFO.slogan}</p>
+          <p className="text-[10px] font-mono opacity-50 uppercase">{config?.slogan || 'Acceso Restringido'}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-10 space-y-6">
@@ -62,7 +67,7 @@ export default function Login() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 border-2 border-ink bg-white font-black text-sm focus:outline-none focus:bg-yellow-50 transition-all uppercase"
+                  className="w-full bg-white border border-ink p-3 text-xs font-black focus:ring-1 focus:ring-accent outline-none uppercase"
                   placeholder="admin@nexus.erp"
                 />
               </div>
@@ -77,7 +82,7 @@ export default function Login() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 border-2 border-ink bg-white font-black text-sm focus:outline-none focus:bg-yellow-50 transition-all"
+                  className="w-full bg-white border border-ink p-3 text-xs font-black focus:ring-1 focus:ring-accent outline-none"
                   placeholder="••••••••"
                 />
               </div>
@@ -93,7 +98,7 @@ export default function Login() {
           </button>
 
           <p className="text-center text-[10px] font-mono text-ink/40 uppercase">
-            © {new Date().getFullYear()} {COMPANY_INFO.name} S.A.
+            © {new Date().getFullYear()} {config?.name || 'QUE POLLO'}
           </p>
         </form>
       </motion.div>

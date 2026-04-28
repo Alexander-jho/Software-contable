@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -5,15 +6,21 @@ import {
   ShoppingCart, 
   Wallet, 
   LogOut,
-  ChevronRight
+  Settings as SettingsIcon,
+  Search
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { cn } from '../lib/utils';
-import { COMPANY_INFO } from '../constants';
+import { SettingsService, CompanySettings } from '../services/settingsService';
 
 export default function Sidebar() {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
+  const [config, setConfig] = useState<CompanySettings | null>(null);
+
+  useEffect(() => {
+    SettingsService.get().then(setConfig);
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -25,27 +32,27 @@ export default function Sidebar() {
     { to: '/products', icon: Package, label: 'INVENTARIO' },
     { to: '/transactions', icon: ShoppingCart, label: 'MOVIMIENTOS' },
     { to: '/cash', icon: Wallet, label: 'FLUJO DE CAJA' },
+    { to: '/settings', icon: SettingsIcon, label: 'CONFIGURACIÓN' },
   ];
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-ink flex flex-col z-50">
       <div className="p-6 border-b border-ink bg-canvas">
         <div className="flex items-center gap-3 mb-4">
-          {COMPANY_INFO.logoUrl ? (
+          {config?.logoUrl ? (
             <img 
-              src={COMPANY_INFO.logoUrl} 
+              src={config.logoUrl} 
               alt="Logo" 
               className="w-12 h-12 object-contain border-2 border-ink bg-white p-1 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
-              referrerPolicy="no-referrer"
             />
           ) : (
             <div className="w-10 h-10 bg-accent border-2 border-ink flex items-center justify-center text-canvas font-black text-xs shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
               POLLO
             </div>
           )}
-          <div>
-            <h1 className="font-sans font-black text-sm text-ink tracking-tighter leading-none">
-              {COMPANY_INFO.name}
+          <div className="overflow-hidden">
+            <h1 className="font-sans font-black text-sm text-ink tracking-tighter leading-none truncate">
+              {config?.name || 'QUE POLLO'}
             </h1>
             <p className="text-[8px] font-mono opacity-40 uppercase tracking-widest mt-1">SISTEMA DE GESTIÓN</p>
           </div>

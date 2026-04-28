@@ -30,16 +30,16 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!state) return;
     const inventory = Object.entries(state.inventory).map(([id, qty]) => {
       const product = products.find(p => p.id === id);
       return { name: product?.name || 'Desconocido', qty, unit: product?.unit || 'und' };
     });
     
-    exportDashboardPDF({
+    await exportDashboardPDF({
       inventory,
-      movements: [], // Can be populated if needed, for now we summary stats
+      movements: [],
       totalCashIn: state.totalSales,
       totalCashOut: state.totalCosts
     });

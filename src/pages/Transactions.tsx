@@ -98,7 +98,7 @@ export default function Transactions() {
         
         // Exportamos factura automáticamente si es venta o compra
         if (modalType === 'SALE' || modalType === 'PURCHASE') {
-          exportInvoicePDF({ ...transactionData, id: docRef.id });
+          await exportInvoicePDF({ ...transactionData, id: docRef.id });
         }
       }
 
@@ -230,7 +230,7 @@ export default function Transactions() {
                       </td>
                       <td className="px-6 py-4 text-right">
                          <button 
-                           onClick={() => exportInvoicePDF(t)}
+                           onClick={async () => await exportInvoicePDF(t)}
                            className="bg-white border border-ink text-ink p-1 hover:bg-ink hover:text-canvas transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none translate-y-[-2px] active:translate-y-[0px]"
                            title="Exportar Factura"
                          >
