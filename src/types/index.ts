@@ -28,7 +28,7 @@ export interface Transaction {
   paymentStatus: 'PAID' | 'PARTIAL' | 'CREDIT';
   date: any; 
   createdAt: any;
-  referenceId?: string;
+  referenceId?: string; // Links to another transaction (e.g. Production to Purchase)
   note?: string;
   clientName?: string;
 }

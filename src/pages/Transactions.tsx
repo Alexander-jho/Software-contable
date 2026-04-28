@@ -29,6 +29,7 @@ export default function Transactions() {
 
   // Form state
   const [selectedProductId, setSelectedProductId] = useState('');
+  const [purchaseRefId, setPurchaseRefId] = useState('');
   const [quantity, setQuantity] = useState(0); // Units
   const [weight, setWeight] = useState(0);     // Kilos
   const [price, setPrice] = useState(0);
@@ -74,6 +75,7 @@ export default function Transactions() {
            paidAmount: 0,
            paymentStatus: 'PAID',
            date: transactionDate,
+           referenceId: purchaseRefId,
            note: `Desposte base: ${note}`
          });
 
@@ -83,12 +85,13 @@ export default function Transactions() {
               productId: res.productId,
               type: 'PRODUCTION_IN',
               quantity: res.quantity,
-              weight: res.weight || 0,
+              weight: (res as any).weight || 0,
               price: res.price,
               total: 0,
               paidAmount: 0,
               paymentStatus: 'PAID',
               date: transactionDate,
+              referenceId: purchaseRefId,
               note: `Resultado desposte de ${selectedProductId}`
             });
          }
@@ -128,6 +131,7 @@ export default function Transactions() {
 
   const resetForm = () => {
     setSelectedProductId('');
+    setPurchaseRefId('');
     setQuantity(0);
     setWeight(0);
     setPrice(0);
@@ -353,6 +357,27 @@ export default function Transactions() {
 
               {modalType === 'PRODUCTION_IN' && (
                 <div className="space-y-4 pt-6 border-t-2 border-ink border-dashed">
+                  <div className="bg-blue-50 p-4 border-2 border-blue-200">
+                    <label className="text-[10px] uppercase font-black text-blue-600 mb-1 block">Vincular a Factura de Compra (Opcional)</label>
+                    <select 
+                      value={purchaseRefId} 
+                      onChange={(e) => setPurchaseRefId(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-ink bg-white font-mono font-black focus:outline-none text-xs"
+                    >
+                      <option value="">SIN VINCULACIÓN DIRECTA</option>
+                      {transactions
+                        .filter(t => t.type === 'PURCHASE' && t.productId === selectedProductId)
+                        .slice(0, 10)
+                        .map(t => (
+                          <option key={t.id} value={t.id}>
+                            COMPRA #{t.id.slice(-6).toUpperCase()} - {format(t.date.toDate ? t.date.toDate() : new Date(t.date), 'dd/MM/yyyy')} (${t.total.toLocaleString()})
+                          </option>
+                        ))
+                      }
+                    </select>
+                    <p className="text-[9px] font-mono mt-1 text-blue-500 uppercase font-bold italic">* LIGA ESTE PROCESO A UNA ENTRADA DE MERCANCÍA ESPECÍFICA</p>
+                  </div>
+
                   <div className="flex justify-between items-center">
                     <label className="text-[10px] uppercase font-black text-ink">SALIDA DE PROCESAMIENTO (DERIVADOS)</label>
                     <button type="button" onClick={addProductionResult} className="text-accent text-[10px] font-black uppercase tracking-widest border border-accent px-2 py-1 hover:bg-accent hover:text-white transition-all flex items-center gap-1">
