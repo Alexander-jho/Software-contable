@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "Courier New", Courier, monospace;
+  --font-serif: "Georgia", serif;
+  
+  --color-ink: #141414;
+  --color-canvas: #E4E3E0;
+  --color-accent: #F27D26;
+}
+
+@layer base {
+  body {
+    @apply bg-canvas text-ink font-sans;
+    background-image: radial-gradient(#141414 0.5px, transparent 0.5px);
+    background-size: 20px 20px;
+  }
+}
+
+@layer components {
+  .brutalist-card {
+    @apply bg-white border border-ink shadow-[4px_4px_0px_0px_rgba(20,20,20,1)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(20,20,20,1)];
+  }
+  
+  .tech-header {
+    @apply h-[60px] border-b border-ink bg-white flex items-center justify-between px-6;
+  }
+
+  .nav-item-active {
+    @apply bg-ink text-canvas;
+  }
+  
+  .recalc-pill {
+    @apply bg-accent text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest;
+  }
+}

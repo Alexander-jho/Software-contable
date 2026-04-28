@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 1. Products
+    match /products/{productId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidProduct(incoming());
+      allow update: if isSignedIn() && isValidProduct(incoming());
+      allow delete: if isSignedIn();
+    }
+
+    function isValidProduct(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 200
+        && data.category in ['Pollo', 'Pescado', 'Cerdo', 'Lácteos', 'Otros']
+        && data.unit in ['kg', 'unidad']
+        && data.type in ['Normal', 'Producción']
+        && data.costPrice is number && data.costPrice >= 0
+        && data.salePrice is number && data.salePrice >= 0;
+    }
+
+    // 2. Transactions
+    match /transactions/{transactionId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidTransaction(incoming());
+      allow update, delete: if false; // Transactions are immutable once recorded
+    }
+
+    function isValidTransaction(data) {
+      return data.type in ['PURCHASE', 'SALE', 'PRODUCTION_IN', 'PRODUCTION_OUT', 'INITIAL_INVENTORY']
+        && data.productId is string
+        && data.quantity is number && data.quantity >= 0
+        && data.price is number && data.price >= 0
+        && data.total is number && data.total >= 0
+        && data.date != null;
+    }
+
+    // 3. Cash Movements
+    match /cash_movements/{movementId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidCashMovement(incoming());
+      allow update, delete: if false;
+    }
+
+    function isValidCashMovement(data) {
+      return data.type in ['INCOME', 'EXPENSE']
+        && data.amount is number && data.amount >= 0
+        && data.date != null;
+    }
+
+    // 4. Invoices
+    match /invoices/{invoiceId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidInvoice(incoming());
+      allow update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    function isValidInvoice(data) {
+      return data.number is string && data.type in ['COMP', 'VENT']
+        && data.total is number && data.total >= 0;
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "A food product in the inventory",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string", "enum": ["Pollo", "Pescado", "Cerdo", "Lácteos", "Otros"] },
+        "unit": { "type": "string", "enum": ["kg", "unidad"] },
+        "costPrice": { "type": "number" },
+        "salePrice": { "type": "number" },
+        "type": { "type": "string", "enum": ["Normal", "Producción"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "category", "unit", "costPrice", "salePrice", "type"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Inventory movement (Purchase, Sale, Production, Initial)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["PURCHASE", "SALE", "PRODUCTION_IN", "PRODUCTION_OUT", "INITIAL_INVENTORY"] },
+        "productId": { "type": "string" },
+        "quantity": { "type": "number" },
+        "price": { "type": "number" },
+        "total": { "type": "number" },
+        "date": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "referenceId": { "type": "string" },
+        "note": { "type": "string" }
+      },
+      "required": ["type", "productId", "quantity", "price", "total", "date", "createdAt"]
+    },
+    "CashMovement": {
+      "title": "Cash Movement",
+      "description": "Financial movement in the box",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["INCOME", "EXPENSE"] },
+        "amount": { "type": "number" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "referenceId": { "type": "string" }
+      },
+      "required": ["type", "amount", "date", "createdAt"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Purchase or Sale invoice record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "number": { "type": "string" },
+        "type": { "type": "string", "enum": ["COMP", "VENT"] },
+        "total": { "type": "number" },
+        "date": { "type": "string", "format": "date-time" },
+        "transactionIds": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["PAID", "PENDING"] }
+      },
+      "required": ["number", "type", "total", "date"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": { "schema": "Product", "description": "Catalog of items" },
+    "/transactions/{transactionId}": { "schema": "Transaction", "description": "All inventory movements" },
+    "/cash_movements/{movementId}": { "schema": "CashMovement", "description": "Financial transactions" },
+    "/invoices/{invoiceId}": { "schema": "Invoice", "description": "Invoice tracking" }
+  }
+}
