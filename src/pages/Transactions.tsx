@@ -15,6 +15,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { exportInvoicePDF } from '../utils/pdfExport';
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -84,7 +85,7 @@ export default function Transactions() {
          }
       } else {
         const total = quantity * price;
-        await TransactionService.create({
+        const transactionData = {
           productId: selectedProductId,
           type: modalType,
           quantity,
@@ -92,10 +93,16 @@ export default function Transactions() {
           total,
           date: transactionDate,
           note
-        });
+        };
+        const docRef = await TransactionService.create(transactionData);
+        
+        // Exportamos factura automáticamente si es venta o compra
+        if (modalType === 'SALE' || modalType === 'PURCHASE') {
+          exportInvoicePDF({ ...transactionData, id: docRef.id });
+        }
       }
 
-      toast.success('Movimiento registrado');
+      toast.success('Registro completado y serializado');
       loadData();
       setIsModalOpen(false);
       resetForm();
@@ -183,12 +190,13 @@ export default function Transactions() {
                   <th className="px-6 py-3 text-right">Volumen</th>
                   <th className="px-6 py-3 text-right">Valor Unit.</th>
                   <th className="px-6 py-3 text-right">Balance</th>
+                  <th className="px-6 py-3 text-right">Acción</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink/10">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-xs font-mono opacity-50 uppercase">Consultando base de datos persistente...</td>
+                    <td colSpan={7} className="px-6 py-12 text-center text-xs font-mono opacity-50 uppercase">Consultando base de datos persistente...</td>
                   </tr>
                 ) : filtered.map((t) => {
                   const product = products.find(p => p.id === t.productId);
@@ -219,6 +227,15 @@ export default function Transactions() {
                          <div className={`font-mono font-black text-sm ${t.type === 'SALE' ? 'text-green-600' : t.type === 'PURCHASE' ? 'text-red-500' : 'text-gray-400'}`}>
                            {t.type === 'SALE' ? '+$' : t.type === 'PURCHASE' ? '-$' : '$'}{t.total.toLocaleString()}
                          </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                         <button 
+                           onClick={() => exportInvoicePDF(t)}
+                           className="bg-white border border-ink text-ink p-1 hover:bg-ink hover:text-canvas transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none translate-y-[-2px] active:translate-y-[0px]"
+                           title="Exportar Factura"
+                         >
+                           <Search size={14} />
+                         </button>
                       </td>
                     </tr>
                   );

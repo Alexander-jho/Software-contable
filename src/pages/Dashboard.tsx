@@ -22,12 +22,28 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
+import { exportDashboardPDF } from '../utils/pdfExport';
 
 export default function Dashboard() {
   const [state, setState] = useState<AppState | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const handleExportPDF = () => {
+    if (!state) return;
+    const inventory = Object.entries(state.inventory).map(([id, qty]) => {
+      const product = products.find(p => p.id === id);
+      return { name: product?.name || 'Desconocido', qty, unit: product?.unit || 'und' };
+    });
+    
+    exportDashboardPDF({
+      inventory,
+      movements: [], // Can be populated if needed, for now we summary stats
+      totalCashIn: state.totalSales,
+      totalCashOut: state.totalCosts
+    });
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -78,7 +94,13 @@ export default function Dashboard() {
           <h1 className="text-lg font-black tracking-tighter text-ink">TABLERO DE MANDO</h1>
         </div>
         <div className="flex items-center gap-4">
-          <div className="recalc-pill animate-pulse">Motor de Re-cálculo Activo</div>
+          <button 
+            onClick={handleExportPDF}
+            className="bg-ink text-canvas px-6 py-2 text-xs font-black hover:bg-black transition-all border-2 border-ink shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+          >
+            DESCARGAR INFORME
+          </button>
+          <div className="recalc-pill animate-pulse hidden md:block">Motor de Re-cálculo Activo</div>
           <button 
             onClick={() => navigate('/transactions')}
             className="border-2 border-ink px-6 py-2 text-xs font-black hover:bg-ink hover:text-canvas transition-all"

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { COMPANY_INFO } from '../constants';
 
 export default function Login() {
   const [email, setEmail] = useState('alex.b19h@gmail.com');
@@ -34,7 +35,7 @@ export default function Login() {
   return (
     <div className="min-h-screen grid-bg flex items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute top-10 left-10 font-black text-ink/20 text-4xl select-none hidden md:block">
-        ERP_INDUSTRIAL_V.1.0
+        {COMPANY_INFO.name}
       </div>
       <div className="absolute bottom-10 right-10 font-mono text-ink/20 text-sm select-none hidden md:block">
         SECURE_AUTH_LAYER: CLOUD_FS
@@ -47,7 +48,7 @@ export default function Login() {
       >
         <div className="p-8 border-b border-ink bg-ink text-canvas">
           <h2 className="text-xl font-black tracking-tighter uppercase mb-1">Inicia Sesión</h2>
-          <p className="text-[10px] font-mono opacity-50 uppercase">Acceso Restringido - Personal Autorizado</p>
+          <p className="text-[10px] font-mono opacity-50 uppercase">{COMPANY_INFO.slogan}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-10 space-y-6">
@@ -92,7 +93,7 @@ export default function Login() {
           </button>
 
           <p className="text-center text-[10px] font-mono text-ink/40 uppercase">
-            © 2024 Carnes & Lácteos S.A. System Engine
+            © {new Date().getFullYear()} {COMPANY_INFO.name} S.A.
           </p>
         </form>
       </motion.div>

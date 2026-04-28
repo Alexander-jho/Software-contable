@@ -1,6 +1,6 @@
 {
-  "name": "Carnes y Lácteos ERP",
-  "description": "Sistema integral de gestión de inventario, desposte, compras, ventas y contabilidad para negocios de alimentos con recalculo histórico automático.",
+  "name": "Distribuidora QUE POLLO",
+  "description": "Sistema de gestión para Distribuidora QUE POLLO. Control de inventario, desposte, ventas y flujo de caja con reportes PDF.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }
