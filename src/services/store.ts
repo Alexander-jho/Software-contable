@@ -56,6 +56,12 @@ export const ProductService = {
     try {
       await deleteDoc(doc(db, 'products', id));
     } catch (e) { handleFirestoreError(e, OperationType.DELETE, path); }
+  },
+  subscribe(callback: (products: Product[]) => void) {
+    const q = query(collection(db, 'products'), orderBy('name'));
+    return onSnapshot(q, (snapshot) => {
+      callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Product)));
+    });
   }
 };
 
@@ -67,6 +73,12 @@ export const TransactionService = {
       const snapshot = await getDocs(q);
       return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Transaction));
     } catch (e) { handleFirestoreError(e, OperationType.LIST, path); }
+  },
+  subscribe(callback: (transactions: Transaction[]) => void) {
+    const q = query(collection(db, 'transactions'), orderBy('date', 'desc'));
+    return onSnapshot(q, (snapshot) => {
+      callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Transaction)));
+    });
   },
   async create(data: Omit<Transaction, 'id' | 'createdAt'>) {
     const path = 'transactions';

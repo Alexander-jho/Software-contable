@@ -1,13 +1,70 @@
 import React, { useState, useEffect } from 'react';
 import { SettingsService, CompanySettings } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
-import { Save, Upload, Building2, User, Phone, FileText, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Save, Upload, Building2, User, Phone, FileText, Image as ImageIcon, Loader2, Package } from 'lucide-react';
+import { ProductService } from '../services/store';
 import { motion } from 'motion/react';
 
 export default function Settings() {
   const [settings, setSettings] = useState<CompanySettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const STANDARD_CATALOG = [
+    { name: 'Pernil grande', category: 'Pollo', unit: 'kg', type: 'Normal' },
+    { name: 'Pernil mediano', category: 'Pollo', unit: 'kg', type: 'Normal' },
+    { name: 'Pernil pequeño', category: 'Pollo', unit: 'kg', type: 'Normal' },
+    { name: 'Alas', category: 'Pollo', unit: 'kg', type: 'Normal' },
+    { name: 'Hueso', category: 'Pollo', unit: 'kg', type: 'Normal' },
+    { name: 'Picadas', category: 'Pollo', unit: 'kg', type: 'Normal' },
+    { name: 'Bandeja de hígado', category: 'Pollo', unit: 'unidad', type: 'Normal' },
+    { name: 'Bandeja de molleja', category: 'Pollo', unit: 'unidad', type: 'Normal' },
+    { name: 'Pollo entero', category: 'Pollo', unit: 'kg', type: 'Producción' },
+    { name: 'Bolsa de patas', category: 'Pollo', unit: 'unidad', type: 'Normal' },
+    { name: 'Bandeja de pescuezo', category: 'Pollo', unit: 'unidad', type: 'Normal' },
+    { name: 'Corazones', category: 'Pollo', unit: 'kg', type: 'Normal' },
+    { name: 'Menudencia grande', category: 'Pollo', unit: 'unidad', type: 'Normal' },
+    { name: 'Menudencia', category: 'Pollo', unit: 'unidad', type: 'Normal' },
+    { name: 'Pechuga', category: 'Pollo', unit: 'kg', type: 'Normal' },
+    { name: 'Gallina', category: 'Pollo', unit: 'kg', type: 'Normal' },
+    { name: 'Quesos', category: 'Lácteos', unit: 'kg', type: 'Normal' },
+    { name: 'Cuajada', category: 'Lácteos', unit: 'kg', type: 'Normal' },
+    { name: 'Hielo', category: 'Otros', unit: 'unidad', type: 'Normal' },
+    { name: 'Pescado-Cachama', category: 'Pescado', unit: 'kg', type: 'Normal' },
+  ];
+
+  const handleImportCatalog = async () => {
+    if (!confirm('¿Deseas cargar el catálogo predeterminado? Esto no borrará tus productos actuales.')) return;
+    
+    setSaving(true);
+    try {
+      const existingProducts = await ProductService.getAll() || [];
+      const existingNames = new Set(existingProducts.map(p => p.name.toLowerCase()));
+      
+      let importedCount = 0;
+      for (const item of STANDARD_CATALOG) {
+        if (!existingNames.has(item.name.toLowerCase())) {
+          await ProductService.create({
+            ...item,
+            category: item.category as any,
+            unit: item.unit as any,
+            type: item.type as any,
+            stockUnits: 0,
+            stockWeight: 0,
+            inventoryDate: new Date()
+          });
+          importedCount++;
+        }
+      }
+      
+      toast.success(`Se importaron ${importedCount} productos nuevos.`);
+    } catch (error) {
+      console.error(error);
+      toast.error('Error al importar el catálogo');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   useEffect(() => {
     loadSettings();
@@ -183,6 +240,33 @@ export default function Settings() {
           </div>
         </div>
       </form>
+
+      {/* Catalog Import Section */}
+      <div className="bg-white border-2 border-ink p-8 shadow-[8px_8px_0px_0px_rgba(242,125,38,0.2)]">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="p-3 bg-accent/10 border border-accent/20">
+            <Package className="text-accent" size={24} />
+          </div>
+          <div>
+            <h2 className="text-sm font-black uppercase text-ink">Catálogo de Productos Predeterminado</h2>
+            <p className="text-[10px] font-mono text-ink/40 uppercase">Ahorra tiempo cargando los productos base</p>
+          </div>
+        </div>
+
+        <div className="p-6 bg-accent/5 border-2 border-accent/10 border-dashed space-y-4">
+          <p className="text-[10px] font-black uppercase text-accent leading-relaxed">
+            Importa automáticamente la lista de productos predeterminada (Perniles, Alas, Pesoz, Lácteos, Pescado-Cachama, etc.).
+          </p>
+          <button
+            onClick={handleImportCatalog}
+            disabled={saving}
+            className="w-full flex items-center justify-center gap-2 bg-accent text-white py-4 text-xs font-black uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="animate-spin" size={16} /> : <Package size={16} />}
+            Cargar Catálogo Inicial (20 Items)
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

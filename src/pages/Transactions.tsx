@@ -42,19 +42,14 @@ export default function Transactions() {
   const [productionResults, setProductionResults] = useState<{ productId: string, quantity: number, price: number }[]>([]);
 
   useEffect(() => {
-    loadData();
+    const unsubProducts = ProductService.subscribe(setProducts);
+    const unsubTransactions = TransactionService.subscribe((t) => setTransactions([...t].reverse()));
+    
+    return () => {
+      unsubProducts();
+      unsubTransactions();
+    };
   }, []);
-
-  async function loadData() {
-    setLoading(true);
-    const [p, t] = await Promise.all([
-      ProductService.getAll(),
-      TransactionService.getAll()
-    ]);
-    if (p) setProducts(p);
-    if (t) setTransactions(t.reverse());
-    setLoading(false);
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,7 +116,6 @@ export default function Transactions() {
       }
 
       toast.success('Registro completado y serializado');
-      loadData();
       setIsModalOpen(false);
       resetForm();
     } catch (e) {
@@ -306,12 +300,34 @@ export default function Transactions() {
                 </div>
                 <div>
                    <label className="text-[10px] uppercase font-black text-ink/40 mb-1 block">Recurso {modalType === 'PRODUCTION_IN' ? 'Primario' : ''}</label>
-                   <select required value={selectedProductId} onChange={(e) => setSelectedProductId(e.target.value)} className="w-full px-4 py-3 border-2 border-ink bg-white font-black text-sm focus:outline-none">
-                     <option value="">SELECCIONE PRODUCTO...</option>
-                     {products.filter(p => modalType === 'PRODUCTION_IN' ? p.type === 'Producción' : true).map(p => (
-                       <option key={p.id} value={p.id}>{p.name.toUpperCase()} ({p.unit.toUpperCase()})</option>
-                     ))}
+                   <select 
+                     required 
+                     value={selectedProductId} 
+                     onChange={(e) => setSelectedProductId(e.target.value)} 
+                     className="w-full px-4 py-3 border-2 border-ink bg-white font-black text-sm focus:outline-none"
+                   >
+                     {products.length === 0 ? (
+                       <option value="">NO HAY PRODUCTOS REGISTRADOS</option>
+                     ) : (
+                       <>
+                         <option value="">SELECCIONE PRODUCTO...</option>
+                         {products
+                           .filter(p => modalType === 'PRODUCTION_IN' ? p.type === 'Producción' : true)
+                           .map(p => (
+                             <option key={p.id} value={p.id}>{p.name.toUpperCase()} ({p.unit.toUpperCase()})</option>
+                           ))
+                         }
+                         {modalType === 'PRODUCTION_IN' && products.filter(p => p.type === 'Producción').length === 0 && (
+                           <option value="" disabled>NO HAY PRODUCTOS DE TIPO 'PRODUCCIÓN'</option>
+                         )}
+                       </>
+                     )}
                    </select>
+                   {products.length === 0 && (
+                     <p className="text-[9px] text-accent font-black uppercase mt-1">
+                       * VE A CONFIGURACIÓN PARA CARGAR EL CATÁLOGO
+                     </p>
+                   )}
                 </div>
               </div>
 
