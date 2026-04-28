@@ -5,5 +5,5 @@ export const COMPANY_INFO = {
   manager: "JORGE LUIS",
   address: "Consulte con administración",
   slogan: "Pollo Semicriollo - Calidad Superior",
-  logoUrl: "" // Pegar URL de imagen o base64 aquí
+  logoUrl: "https://drive.google.com/uc?export=view&id=1GxhtvZRPE51b7TgbBgMswlarAPq8eKr7"
 };

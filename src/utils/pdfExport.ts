@@ -1,14 +1,7 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { COMPANY_INFO } from '../constants';
 import { format } from 'date-fns';
-
-// Extend jsPDF with autotable
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
 
 export const exportDashboardPDF = (data: {
   inventory: any[];
@@ -64,7 +57,7 @@ export const exportDashboardPDF = (data: {
   
   const balance = data.totalCashIn - data.totalCashOut;
   
-  doc.autoTable({
+  autoTable(doc, {
     startY: 77,
     head: [['CONCEPTO', 'VALOR ACUMULADO']],
     body: [
@@ -88,7 +81,7 @@ export const exportDashboardPDF = (data: {
     item.qty < 10 ? 'REPOSICIÓN INMEDIATA' : 'STOCK SEGURO'
   ]);
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: (doc as any).lastAutoTable.finalY + 20,
     head: [['PRODUCTO', 'CANTIDAD ACTUAL', 'ESTADO CRÍTICO']],
     body: tableData,
