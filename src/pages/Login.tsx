@@ -65,10 +65,11 @@ export default function Login() {
                 <input
                   required
                   type="email"
+                  autoComplete="off"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white border border-ink p-3 text-xs font-black focus:ring-1 focus:ring-accent outline-none uppercase"
-                  placeholder="admin@nexus.erp"
+                  className="w-full bg-white border border-ink p-3 text-xs font-black focus:ring-1 focus:ring-accent outline-none"
+                  placeholder="CORREO ELECTRÓNICO"
                 />
               </div>
             </div>
@@ -80,10 +81,11 @@ export default function Login() {
                 <input
                   required
                   type="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-white border border-ink p-3 text-xs font-black focus:ring-1 focus:ring-accent outline-none"
-                  placeholder="••••••••"
+                  placeholder="CONTRASEÑA"
                 />
               </div>
             </div>

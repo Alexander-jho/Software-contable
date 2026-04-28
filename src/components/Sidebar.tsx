@@ -15,7 +15,7 @@ import { cn } from '../lib/utils';
 import { SettingsService, CompanySettings } from '../services/settingsService';
 
 export default function Sidebar() {
-  const { logout, user } = useAuth();
+  const { logout, user, role } = useAuth();
   const navigate = useNavigate();
   const [config, setConfig] = useState<CompanySettings | null>(null);
 
@@ -29,13 +29,15 @@ export default function Sidebar() {
   };
 
   const navItems = [
-    { to: '/', icon: LayoutDashboard, label: 'DASHBOARD' },
-    { to: '/products', icon: Package, label: 'INVENTARIO' },
-    { to: '/transactions', icon: ShoppingCart, label: 'MOVIMIENTOS' },
-    { to: '/employees', icon: Users, label: 'EMPLEADOS' },
-    { to: '/cash', icon: Wallet, label: 'FLUJO DE CAJA' },
-    { to: '/settings', icon: SettingsIcon, label: 'CONFIGURACIÓN' },
+    { to: '/', icon: LayoutDashboard, label: 'DASHBOARD', adminOnly: false },
+    { to: '/products', icon: Package, label: 'INVENTARIO', adminOnly: true },
+    { to: '/transactions', icon: ShoppingCart, label: 'MOVIMIENTOS', adminOnly: false },
+    { to: '/employees', icon: Users, label: 'EMPLEADOS', adminOnly: true },
+    { to: '/cash', icon: Wallet, label: 'FLUJO DE CAJA', adminOnly: true },
+    { to: '/settings', icon: SettingsIcon, label: 'CONFIGURACIÓN', adminOnly: true },
   ];
+
+  const filteredNavItems = navItems.filter(item => !item.adminOnly || role === 'ADMIN');
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-ink flex flex-col z-50">
@@ -59,11 +61,14 @@ export default function Sidebar() {
             <p className="text-[8px] font-mono opacity-40 uppercase tracking-widest mt-1">SISTEMA DE GESTIÓN</p>
           </div>
         </div>
-        <p className="text-[9px] font-mono opacity-50 uppercase truncate border-t border-ink/10 pt-2">USER: {user?.email?.split('@')[0]}</p>
+        <div className="border-t border-ink/10 pt-2 flex flex-col gap-1">
+          <p className="text-[9px] font-mono opacity-50 uppercase truncate">USER: {user?.email?.split('@')[0]}</p>
+          <div className="text-[8px] font-mono bg-accent/10 px-2 py-0.5 border border-accent/20 text-accent font-black w-fit uppercase">{role}</div>
+        </div>
       </div>
 
       <nav className="flex-1 mt-0">
-        {navItems.map((item) => (
+        {filteredNavItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
