@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Transactions from './pages/Transactions';
 import CashFlow from './pages/CashFlow';
+import Settings from './pages/Settings';
+import Employees from './pages/Employees';
 import Sidebar from './components/Sidebar';
 import { Toaster } from 'react-hot-toast';
 
@@ -38,6 +40,8 @@ export default function App() {
           <Route path="/products" element={<ProtectedRoute><MainLayout><Products /></MainLayout></ProtectedRoute>} />
           <Route path="/transactions" element={<ProtectedRoute><MainLayout><Transactions /></MainLayout></ProtectedRoute>} />
           <Route path="/cash" element={<ProtectedRoute><MainLayout><CashFlow /></MainLayout></ProtectedRoute>} />
+          <Route path="/employees" element={<ProtectedRoute><MainLayout><Employees /></MainLayout></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><MainLayout><Settings /></MainLayout></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>

@@ -81,5 +81,17 @@ service cloud.firestore {
       return data.number is string && data.type in ['COMP', 'VENT']
         && data.total is number && data.total >= 0;
     }
+
+    // 5. Settings
+    match /settings/{settingId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn(); // Add validation if needed, but for now allow config
+    }
+
+    // 6. Users/Employees
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn(); // Allow admin to manage users
+    }
   }
 }

@@ -7,7 +7,8 @@ import {
   Wallet, 
   LogOut,
   Settings as SettingsIcon,
-  Search
+  Search,
+  Users
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { cn } from '../lib/utils';
@@ -31,6 +32,7 @@ export default function Sidebar() {
     { to: '/', icon: LayoutDashboard, label: 'DASHBOARD' },
     { to: '/products', icon: Package, label: 'INVENTARIO' },
     { to: '/transactions', icon: ShoppingCart, label: 'MOVIMIENTOS' },
+    { to: '/employees', icon: Users, label: 'EMPLEADOS' },
     { to: '/cash', icon: Wallet, label: 'FLUJO DE CAJA' },
     { to: '/settings', icon: SettingsIcon, label: 'CONFIGURACIÓN' },
   ];
