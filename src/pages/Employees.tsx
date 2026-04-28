@@ -12,6 +12,7 @@ import {
   Loader2,
   Lock
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function Employees() {
   const [employees, setEmployees] = useState<UserProfile[]>([]);

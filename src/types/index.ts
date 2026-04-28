@@ -9,9 +9,10 @@ export interface Product {
   name: string;
   category: Category;
   unit: Unit;
-  costPrice: number;
-  salePrice: number;
   type: ProductType;
+  stockUnits: number;
+  stockWeight: number;
+  inventoryDate: any;
   createdAt: any;
 }
 
@@ -19,13 +20,17 @@ export interface Transaction {
   id: string;
   type: TransactionType;
   productId: string;
-  quantity: number;
+  quantity: number; // units
+  weight?: number;  // kilos
   price: number;
   total: number;
-  date: any; // Timestamp or JS Date
+  paidAmount: number; // For 'abono'
+  paymentStatus: 'PAID' | 'PARTIAL' | 'CREDIT';
+  date: any; 
   createdAt: any;
   referenceId?: string;
   note?: string;
+  clientName?: string;
 }
 
 export interface CashMovement {

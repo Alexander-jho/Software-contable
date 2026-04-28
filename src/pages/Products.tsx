@@ -4,6 +4,7 @@ import { Product, Category, Unit, ProductType } from '../types';
 import { Plus, Search, Filter, Edit3, Trash2, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'motion/react';
+import { format } from 'date-fns';
 
 const CATEGORIES: Category[] = ['Pollo', 'Pescado', 'Cerdo', 'Lácteos', 'Otros'];
 const UNITS: Unit[] = ['kg', 'unidad'];
@@ -20,9 +21,10 @@ export default function Products() {
   const [name, setName] = useState('');
   const [category, setCategory] = useState<Category>('Pollo');
   const [unit, setUnit] = useState<Unit>('kg');
-  const [costPrice, setCostPrice] = useState(0);
-  const [salePrice, setSalePrice] = useState(0);
   const [type, setType] = useState<ProductType>('Normal');
+  const [stockUnits, setStockUnits] = useState(0);
+  const [stockWeight, setStockWeight] = useState(0);
+  const [inventoryDate, setInventoryDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
   useEffect(() => {
     loadProducts();
@@ -37,7 +39,15 @@ export default function Products() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const data = { name, category, unit, costPrice: Number(costPrice), salePrice: Number(salePrice), type };
+    const data: Omit<Product, 'id' | 'createdAt'> = { 
+      name, 
+      category, 
+      unit, 
+      type,
+      stockUnits: Number(stockUnits),
+      stockWeight: Number(stockWeight),
+      inventoryDate: new Date(inventoryDate + 'T12:00:00')
+    };
     
     try {
       if (editingProduct) {
@@ -60,17 +70,19 @@ export default function Products() {
       setName(p.name);
       setCategory(p.category);
       setUnit(p.unit);
-      setCostPrice(p.costPrice);
-      setSalePrice(p.salePrice);
       setType(p.type);
+      setStockUnits(p.stockUnits || 0);
+      setStockWeight(p.stockWeight || 0);
+      setInventoryDate(p.inventoryDate ? format(p.inventoryDate.toDate ? p.inventoryDate.toDate() : new Date(p.inventoryDate), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'));
     } else {
       setEditingProduct(null);
       setName('');
       setCategory('Pollo');
       setUnit('kg');
-      setCostPrice(0);
-      setSalePrice(0);
       setType('Normal');
+      setStockUnits(0);
+      setStockWeight(0);
+      setInventoryDate(format(new Date(), 'yyyy-MM-dd'));
     }
     setIsModalOpen(true);
   };
@@ -127,8 +139,9 @@ export default function Products() {
                 <th className="px-6 py-3">Nombre / Identificador</th>
                 <th className="px-6 py-3 text-center">Categoría</th>
                 <th className="px-6 py-3 text-center">Protocolo</th>
-                <th className="px-6 py-3 text-right">Costo Unit.</th>
-                <th className="px-6 py-3 text-right">PVP Estimado</th>
+                <th className="px-6 py-3 text-center">Stock (Un)</th>
+                <th className="px-6 py-3 text-center">Stock (Kg)</th>
+                <th className="px-6 py-3 text-center">Fecha Inventario</th>
                 <th className="px-6 py-3 text-right">ACC</th>
               </tr>
             </thead>
@@ -149,8 +162,13 @@ export default function Products() {
                       {p.type}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right font-mono font-bold text-sm tracking-tighter">${p.costPrice.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-right font-mono font-bold text-sm tracking-tighter text-green-700">${p.salePrice.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-center font-mono font-bold">{p.stockUnits || 0}</td>
+                  <td className="px-6 py-4 text-center font-mono font-bold text-ink/60">{p.stockWeight?.toFixed(2) || '0.00'}</td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="text-[10px] font-mono font-bold">
+                      {p.inventoryDate ? format(p.inventoryDate.toDate ? p.inventoryDate.toDate() : new Date(p.inventoryDate), 'dd/MM/yyyy') : 'N/A'}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={() => openModal(p)} className="p-2 border border-ink/10 hover:bg-ink hover:text-canvas transition-all"><Edit3 size={14} /></button>
@@ -213,13 +231,18 @@ export default function Products() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] uppercase font-black text-ink/40 mb-1 block">Costo Base ($)</label>
-                      <input required type="number" value={costPrice} onChange={(e) => setCostPrice(Number(e.target.value))} className="w-full px-4 py-3 border-2 border-ink bg-white font-mono font-black focus:outline-none" />
+                      <label className="text-[10px] uppercase font-black text-ink/40 mb-1 block">Stock Inicial (Unidades)</label>
+                      <input type="number" value={stockUnits} onChange={(e) => setStockUnits(Number(e.target.value))} className="w-full px-4 py-3 border-2 border-ink bg-white font-mono font-black focus:outline-none" />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-black text-ink/40 mb-1 block">Precio de Salida ($)</label>
-                      <input required type="number" value={salePrice} onChange={(e) => setSalePrice(Number(e.target.value))} className="w-full px-4 py-3 border-2 border-ink bg-white font-mono font-black focus:outline-none" />
+                      <label className="text-[10px] uppercase font-black text-ink/40 mb-1 block">Stock Inicial (Kilos)</label>
+                      <input type="number" step="0.01" value={stockWeight} onChange={(e) => setStockWeight(Number(e.target.value))} className="w-full px-4 py-3 border-2 border-ink bg-white font-mono font-black focus:outline-none" />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] uppercase font-black text-ink/40 mb-1 block">Fecha de Inventario</label>
+                    <input required type="date" value={inventoryDate} onChange={(e) => setInventoryDate(e.target.value)} className="w-full px-4 py-3 border-2 border-ink bg-white font-mono font-black focus:outline-none focus:bg-accent/5" />
                   </div>
 
                   <div>

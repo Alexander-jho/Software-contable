@@ -71,7 +71,29 @@ export const TransactionService = {
   async create(data: Omit<Transaction, 'id' | 'createdAt'>) {
     const path = 'transactions';
     try {
-      return await addDoc(collection(db, path), { ...data, createdAt: serverTimestamp() });
+      // 1. Create the transaction record
+      const docRef = await addDoc(collection(db, path), { ...data, createdAt: serverTimestamp() });
+      
+      // 2. Update product stock
+      const productRef = doc(db, 'products', data.productId);
+      const quantity = data.quantity || 0;
+      const weight = data.weight || 0;
+      
+      // Determination of stock change direction
+      const multiplier = (data.type === 'SALE' || data.type === 'PRODUCTION_OUT') ? -1 : 1;
+      
+      // Get current product data to update
+      const productSnap = await ProductService.getAll(); // Or better, get single doc
+      const product = productSnap?.find(p => p.id === data.productId);
+      
+      if (product) {
+        await updateDoc(productRef, {
+          stockUnits: (product.stockUnits || 0) + (quantity * multiplier),
+          stockWeight: (product.stockWeight || 0) + (weight * multiplier)
+        });
+      }
+
+      return docRef;
     } catch (e) { handleFirestoreError(e, OperationType.CREATE, path); }
   }
 };

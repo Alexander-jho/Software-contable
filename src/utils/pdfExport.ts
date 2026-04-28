@@ -151,6 +151,10 @@ export const exportInvoicePDF = async (transaction: any) => {
   doc.text(`FECHA: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 5, currentY);
   currentY += 4;
   doc.text(`REF: #${transaction.id.slice(-8).toUpperCase()}`, 5, currentY);
+  currentY += 4;
+  doc.text(`CLIENTE: ${transaction.clientName || 'CLIENTE FINAL'}`, 5, currentY);
+  currentY += 4;
+  doc.text(`ESTADO PAGO: ${transaction.paymentStatus || 'PAGADO'}`, 5, currentY);
   
   currentY += 5;
   doc.text('------------------------------------------------', 40, currentY, { align: 'center' });
@@ -158,25 +162,41 @@ export const exportInvoicePDF = async (transaction: any) => {
   // Detail
   currentY += 6;
   doc.setFont('helvetica', 'bold');
-  doc.text('DETALLE / CONCEPTO', 5, currentY);
+  doc.text('DETALLE', 5, currentY);
+  doc.text('CANT/PESO', 35, currentY);
   doc.text('VALOR', 75, currentY, { align: 'right' });
   
   currentY += 5;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   const desc = transaction.description || `Operación de ${transaction.type}`;
-  const splitDesc = doc.splitTextToSize(desc.toUpperCase(), 70);
+  const splitDesc = doc.splitTextToSize(desc.toUpperCase(), 30);
   doc.text(splitDesc, 5, currentY);
   
-  currentY += (splitDesc.length * 4) + 2;
+  const detailText = `${transaction.quantity} UN / ${transaction.weight || 0} KG`;
+  doc.text(detailText, 35, currentY);
+  doc.text(`$${transaction.price.toLocaleString()}`, 75, currentY, { align: 'right' });
+  
+  currentY += Math.max(splitDesc.length * 4, 5) + 2;
 
-  // Total
+  // Totals
   doc.text('------------------------------------------------', 40, currentY, { align: 'center' });
-  currentY += 8;
-  doc.setFontSize(14);
+  currentY += 6;
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text('TOTAL:', 5, currentY);
   doc.text(`$${transaction.total.toLocaleString()}`, 75, currentY, { align: 'right' });
+  
+  currentY += 4;
+  doc.setFontSize(8);
+  doc.text('ABONADO:', 5, currentY);
+  doc.text(`$${(transaction.paidAmount || 0).toLocaleString()}`, 75, currentY, { align: 'right' });
+  
+  currentY += 4;
+  doc.setTextColor(200, 0, 0);
+  doc.text('SALDO PEND.:', 5, currentY);
+  doc.text(`$${(transaction.total - (transaction.paidAmount || 0)).toLocaleString()}`, 75, currentY, { align: 'right' });
+  doc.setTextColor(0);
 
   // Footer
   currentY += 15;

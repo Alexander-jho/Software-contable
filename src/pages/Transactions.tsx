@@ -29,8 +29,11 @@ export default function Transactions() {
 
   // Form state
   const [selectedProductId, setSelectedProductId] = useState('');
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState(0); // Units
+  const [weight, setWeight] = useState(0);     // Kilos
   const [price, setPrice] = useState(0);
+  const [paidAmount, setPaidAmount] = useState(0);
+  const [clientName, setClientName] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [note, setNote] = useState('');
 
@@ -57,16 +60,19 @@ export default function Transactions() {
     if (!selectedProductId) return toast.error('Seleccione un producto');
 
     try {
-      const transactionDate = new Date(date + 'T12:00:00'); // Use noon to avoid TZ issues
+      const transactionDate = new Date(date + 'T12:00:00');
       
-      if (modalType === 'PRODUCTION_IN') { // Special handling for desposte
+      if (modalType === 'PRODUCTION_IN') {
          // 1. Transaction for base product (OUT)
          await TransactionService.create({
            productId: selectedProductId,
            type: 'PRODUCTION_OUT',
            quantity: quantity,
+           weight: weight,
            price: price,
            total: 0,
+           paidAmount: 0,
+           paymentStatus: 'PAID',
            date: transactionDate,
            note: `Desposte base: ${note}`
          });
@@ -77,20 +83,29 @@ export default function Transactions() {
               productId: res.productId,
               type: 'PRODUCTION_IN',
               quantity: res.quantity,
+              weight: res.weight || 0,
               price: res.price,
               total: 0,
+              paidAmount: 0,
+              paymentStatus: 'PAID',
               date: transactionDate,
               note: `Resultado desposte de ${selectedProductId}`
             });
          }
       } else {
-        const total = quantity * price;
-        const transactionData = {
+        const total = (weight > 0 ? weight : quantity) * price;
+        const status: 'PAID' | 'PARTIAL' | 'CREDIT' = paidAmount >= total ? 'PAID' : (paidAmount > 0 ? 'PARTIAL' : 'CREDIT');
+        
+        const transactionData: Omit<Transaction, 'id' | 'createdAt'> = {
           productId: selectedProductId,
           type: modalType,
           quantity,
+          weight,
           price,
           total,
+          paidAmount,
+          paymentStatus: status,
+          clientName,
           date: transactionDate,
           note
         };
@@ -114,14 +129,17 @@ export default function Transactions() {
   const resetForm = () => {
     setSelectedProductId('');
     setQuantity(0);
+    setWeight(0);
     setPrice(0);
+    setPaidAmount(0);
+    setClientName('');
     setNote('');
     setProductionResults([]);
     setDate(format(new Date(), 'yyyy-MM-dd'));
   };
 
   const addProductionResult = () => {
-    setProductionResults([...productionResults, { productId: '', quantity: 0, price: 0 }]);
+    setProductionResults([...productionResults, { productId: '', quantity: 0, weight: 0, price: 0 }]);
   };
 
   const filtered = activeTab === 'ALL' ? transactions : transactions.filter(t => t.type === activeTab);
@@ -186,10 +204,12 @@ export default function Transactions() {
                 <tr className="text-[10px] uppercase font-black tracking-widest text-ink/60 border-b border-ink bg-gray-50">
                   <th className="px-6 py-3">Timestamp / Ref</th>
                   <th className="px-6 py-3">Operación</th>
-                  <th className="px-6 py-3">Designación</th>
+                  <th className="px-6 py-3">Designación / Cliente</th>
                   <th className="px-6 py-3 text-right">Volumen</th>
                   <th className="px-6 py-3 text-right">Valor Unit.</th>
-                  <th className="px-6 py-3 text-right">Balance</th>
+                  <th className="px-6 py-3 text-right">Total / Abono</th>
+                  <th className="px-6 py-3 text-right">Pendiente</th>
+                  <th className="px-6 py-3 text-right">Estado</th>
                   <th className="px-6 py-3 text-right">Acción</th>
                 </tr>
               </thead>
@@ -214,10 +234,11 @@ export default function Transactions() {
                       </td>
                       <td className="px-6 py-4">
                          <div className="text-xs font-black text-ink uppercase truncate max-w-[200px]">{product?.name || 'SYSTEM_ERR'}</div>
+                         <div className="text-[10px] font-black text-accent uppercase truncate max-w-[200px]">{t.clientName || 'CLIENTE FINAL'}</div>
                          <div className="text-[9px] font-serif italic truncate max-w-[200px] opacity-40">{t.note || '-'}</div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="font-mono text-xs font-black">{t.quantity}</div>
+                        <div className="font-mono text-xs font-black">{t.quantity} un / {t.weight || 0} kg</div>
                         <div className="text-[9px] font-black uppercase opacity-40">{product?.unit}</div>
                       </td>
                       <td className="px-6 py-4 text-right font-mono text-xs opacity-40 font-bold">
@@ -225,8 +246,22 @@ export default function Transactions() {
                       </td>
                       <td className="px-6 py-4 text-right">
                          <div className={`font-mono font-black text-sm ${t.type === 'SALE' ? 'text-green-600' : t.type === 'PURCHASE' ? 'text-red-500' : 'text-gray-400'}`}>
-                           {t.type === 'SALE' ? '+$' : t.type === 'PURCHASE' ? '-$' : '$'}{t.total.toLocaleString()}
+                           Total: ${t.total.toLocaleString()}
                          </div>
+                         <div className="text-[9px] font-black text-ink/40">Recibido: ${t.paidAmount?.toLocaleString() || 0}</div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                         <div className="font-mono font-bold text-xs text-red-600">
+                           ${(t.total - (t.paidAmount || 0)).toLocaleString()}
+                         </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                         <span className={`text-[8px] font-black px-1.5 py-0.5 border border-ink ${
+                           t.paymentStatus === 'PAID' ? 'bg-green-100 text-green-700' : 
+                           t.paymentStatus === 'PARTIAL' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'
+                         }`}>
+                           {t.paymentStatus || 'CHECK'}
+                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
                          <button 
@@ -278,14 +313,43 @@ export default function Transactions() {
 
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                   <label className="text-[10px] uppercase font-black text-ink/40 mb-1 block">Flujo de Masa / Cantidad</label>
-                   <input required type="number" step="0.01" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} className="w-full px-4 py-3 border-2 border-ink bg-white font-mono font-black focus:outline-none" />
+                   <label className="text-[10px] uppercase font-black text-ink/40 mb-1 block">Unidades (Cantidad)</label>
+                   <input required type="number" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} className="w-full px-4 py-3 border-2 border-ink bg-white font-mono font-black focus:outline-none" />
                 </div>
                 <div>
-                   <label className="text-[10px] uppercase font-black text-ink/40 mb-1 block">Valor de Transacción</label>
-                   <input required type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className="w-full px-4 py-3 border-2 border-ink bg-white font-mono font-black focus:outline-none" />
+                   <label className="text-[10px] uppercase font-black text-ink/40 mb-1 block">Peso Total (Kilos)</label>
+                   <input required type="number" step="0.01" value={weight} onChange={(e) => setWeight(Number(e.target.value))} className="w-full px-4 py-3 border-2 border-ink bg-white font-mono font-black focus:outline-none" />
                 </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                   <label className="text-[10px] uppercase font-black text-ink/40 mb-1 block">Precio x {weight > 0 ? 'Kilo' : 'Unidad'}</label>
+                   <input required type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className="w-full px-4 py-3 border-2 border-ink bg-white font-mono font-black focus:outline-none focus:bg-yellow-50" />
+                </div>
+                <div className="flex flex-col justify-center">
+                   <div className="text-[10px] uppercase font-black text-ink/40 mb-1">Cálculo de Total Sugerido</div>
+                   <div className="text-xl font-black text-ink border-b-2 border-ink pb-1">
+                     ${((weight > 0 ? weight : quantity) * price).toLocaleString()}
+                   </div>
+                </div>
+              </div>
+
+              {modalType === 'SALE' && (
+                <div className="grid grid-cols-2 gap-6 p-4 bg-gray-50 border-2 border-ink border-dashed">
+                  <div>
+                    <label className="text-[10px] uppercase font-black text-accent mb-1 block">Nombre del Cliente</label>
+                    <input type="text" value={clientName} onChange={(e) => setClientName(e.target.value.toUpperCase())} className="w-full px-4 py-2 border-2 border-ink bg-white font-black text-xs focus:outline-none" placeholder="CLIENTE OCASIONAL" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-black text-green-600 mb-1 block">Abono / Pago Recibido ($)</label>
+                    <input type="number" value={paidAmount} onChange={(e) => setPaidAmount(Number(e.target.value))} className="w-full px-4 py-2 border-2 border-ink bg-white font-mono font-black text-xs focus:outline-none focus:bg-green-50" />
+                    <p className="text-[9px] font-mono mt-1 font-bold text-ink/40">
+                      CREDITO PENDIENTE: ${((weight > 0 ? weight : quantity) * price - paidAmount).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {modalType === 'PRODUCTION_IN' && (
                 <div className="space-y-4 pt-6 border-t-2 border-ink border-dashed">
@@ -305,12 +369,17 @@ export default function Transactions() {
                         <option value="">ÍTEM RESULTANTE...</option>
                         {products.map(p => <option key={p.id} value={p.id}>{p.name.toUpperCase()}</option>)}
                       </select>
-                      <input required type="number" step="0.01" placeholder="CANT." value={res.quantity || ''} onChange={(e) => {
+                      <input required type="number" step="0.01" placeholder="UN." value={res.quantity || ''} onChange={(e) => {
                         const newRes = [...productionResults];
                         newRes[idx].quantity = Number(e.target.value);
                         setProductionResults(newRes);
                       }} className="w-full px-3 py-2 border border-ink/20 focus:outline-none text-[10px] font-mono font-black" />
-                      <input required type="number" placeholder="COSTO PROX." value={res.price || ''} onChange={(e) => {
+                      <input type="number" step="0.01" placeholder="KG." value={(res as any).weight || ''} onChange={(e) => {
+                        const newRes = [...productionResults];
+                        (newRes[idx] as any).weight = Number(e.target.value);
+                        setProductionResults(newRes);
+                      }} className="w-full px-3 py-2 border border-ink/20 focus:outline-none text-[10px] font-mono font-black" />
+                      <input required type="number" placeholder="COSTO $." value={res.price || ''} onChange={(e) => {
                         const newRes = [...productionResults];
                         newRes[idx].price = Number(e.target.value);
                         setProductionResults(newRes);

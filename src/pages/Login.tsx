@@ -7,8 +7,8 @@ import { motion } from 'motion/react';
 import { SettingsService, CompanySettings } from '../services/settingsService';
 
 export default function Login() {
-  const [email, setEmail] = useState('alex.b19h@gmail.com');
-  const [password, setPassword] = useState('060224Jc!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [config, setConfig] = useState<CompanySettings | null>(null);
   const { login } = useAuth();
