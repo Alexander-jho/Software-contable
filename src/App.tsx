@@ -8,6 +8,7 @@ import Transactions from './pages/Transactions';
 import CashFlow from './pages/CashFlow';
 import Settings from './pages/Settings';
 import Employees from './pages/Employees';
+import InventoryLogs from './pages/InventoryLogs';
 import Sidebar from './components/Sidebar';
 import { Toaster } from 'react-hot-toast';
 
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="/products" element={<ProtectedRoute><AdminRoute><MainLayout><Products /></MainLayout></AdminRoute></ProtectedRoute>} />
           <Route path="/transactions" element={<ProtectedRoute><MainLayout><Transactions /></MainLayout></ProtectedRoute>} />
           <Route path="/cash" element={<ProtectedRoute><AdminRoute><MainLayout><CashFlow /></MainLayout></AdminRoute></ProtectedRoute>} />
+          <Route path="/inventory-history" element={<ProtectedRoute><AdminRoute><MainLayout><InventoryLogs /></MainLayout></AdminRoute></ProtectedRoute>} />
           <Route path="/employees" element={<ProtectedRoute><AdminRoute><MainLayout><Employees /></MainLayout></AdminRoute></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><AdminRoute><MainLayout><Settings /></MainLayout></AdminRoute></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" />} />

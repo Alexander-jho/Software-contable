@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ProductService } from '../services/store';
+import { ProductService, InventoryService } from '../services/store';
 import { Product, Category, Unit, ProductType } from '../types';
 import { Plus, Search, Filter, Edit3, Trash2, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -51,6 +51,18 @@ export default function Products() {
     
     try {
       if (editingProduct) {
+        // Log the change
+        await InventoryService.createLog({
+          productId: editingProduct.id,
+          productName: editingProduct.name,
+          previousUnits: editingProduct.stockUnits || 0,
+          previousWeight: editingProduct.stockWeight || 0,
+          newUnits: data.stockUnits,
+          newWeight: data.stockWeight,
+          inventoryDate: data.inventoryDate,
+          note: `Actualización manual de inventario`
+        });
+
         await ProductService.update(editingProduct.id, data);
         toast.success('Producto actualizado');
       } else {

@@ -12,7 +12,7 @@ import {
   Timestamp 
 } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
-import { Product, Transaction, CashMovement, Invoice, OperationType } from '../types';
+import { Product, Transaction, CashMovement, Invoice, InventoryLog, OperationType } from '../types';
 
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
   const errInfo = {
@@ -134,6 +134,23 @@ export const InvoiceService = {
   },
   async create(data: Omit<Invoice, 'id' | 'createdAt'>) {
     const path = 'invoices';
+    try {
+      return await addDoc(collection(db, path), { ...data, createdAt: serverTimestamp() });
+    } catch (e) { handleFirestoreError(e, OperationType.CREATE, path); }
+  }
+};
+
+export const InventoryService = {
+  async getAll() {
+    const path = 'inventory_logs';
+    try {
+      const q = query(collection(db, path), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as InventoryLog));
+    } catch (e) { handleFirestoreError(e, OperationType.LIST, path); }
+  },
+  async createLog(data: Omit<InventoryLog, 'id' | 'createdAt'>) {
+    const path = 'inventory_logs';
     try {
       return await addDoc(collection(db, path), { ...data, createdAt: serverTimestamp() });
     } catch (e) { handleFirestoreError(e, OperationType.CREATE, path); }

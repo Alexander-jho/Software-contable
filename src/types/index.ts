@@ -54,6 +54,19 @@ export interface Invoice {
   status: 'PAID' | 'PENDING';
 }
 
+export interface InventoryLog {
+  id?: string;
+  productId: string;
+  productName: string;
+  previousUnits: number;
+  previousWeight: number;
+  newUnits: number;
+  newWeight: number;
+  inventoryDate: any;
+  createdAt: any;
+  note?: string;
+}
+
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',

@@ -36,24 +36,31 @@ service cloud.firestore {
         && data.category in ['Pollo', 'Pescado', 'Cerdo', 'Lácteos', 'Otros']
         && data.unit in ['kg', 'unidad']
         && data.type in ['Normal', 'Producción']
-        && data.costPrice is number && data.costPrice >= 0
-        && data.salePrice is number && data.salePrice >= 0;
+        && data.stockUnits is number
+        && data.stockWeight is number;
     }
 
     // 2. Transactions
     match /transactions/{transactionId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && isValidTransaction(incoming());
-      allow update, delete: if false; // Transactions are immutable once recorded
+      allow update, delete: if false; 
     }
 
     function isValidTransaction(data) {
       return data.type in ['PURCHASE', 'SALE', 'PRODUCTION_IN', 'PRODUCTION_OUT', 'INITIAL_INVENTORY']
         && data.productId is string
-        && data.quantity is number && data.quantity >= 0
+        && data.quantity is number
         && data.price is number && data.price >= 0
         && data.total is number && data.total >= 0
         && data.date != null;
+    }
+
+    // 7. Inventory Logs
+    match /inventory_logs/{logId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
     }
 
     // 3. Cash Movements

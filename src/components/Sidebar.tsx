@@ -8,7 +8,8 @@ import {
   LogOut,
   Settings as SettingsIcon,
   Search,
-  Users
+  Users,
+  History
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { cn } from '../lib/utils';
@@ -31,6 +32,7 @@ export default function Sidebar() {
   const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'DASHBOARD', adminOnly: false },
     { to: '/products', icon: Package, label: 'INVENTARIO', adminOnly: true },
+    { to: '/inventory-history', icon: History, label: 'HISTORIAL INV.', adminOnly: true },
     { to: '/transactions', icon: ShoppingCart, label: 'MOVIMIENTOS', adminOnly: false },
     { to: '/employees', icon: Users, label: 'EMPLEADOS', adminOnly: true },
     { to: '/cash', icon: Wallet, label: 'FLUJO DE CAJA', adminOnly: true },
